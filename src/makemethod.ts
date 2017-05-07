@@ -60,12 +60,18 @@ export interface IControllerDetails {
 }
 
 
-function swaggerParam2string(i: string, pname: string, ptype: string, defaultVal): string {
+function swaggerParam2string(i: string, pname: string, ptype: string, required, defaultVal): string {
 
     let decorator: string;
+    let _required: string = "";
     let name: string;
     let type: string = "any";
     let ret = "";
+
+
+    if (required) {
+        _required = "@Required ";
+    }
 
     switch (ptype) {
         case "number":
@@ -110,7 +116,7 @@ function swaggerParam2string(i: string, pname: string, ptype: string, defaultVal
     }
 
     if (decorator != "") {
-        ret = `${decorator} ${name}:${type}`;
+        ret = `${decorator} ${_required}${name}:${type}`;
     }
 
     if (ret !== "" && defaultVal) {
@@ -132,11 +138,19 @@ function swaggerParams2paramList(sparams: Array<SwaggerParam>): [string, string[
     let imports: string[] = [];
     let aParams: string[] = [];
 
+    // If input array is empty then just return empty values
+    if (sparams.length == 0) {
+        return ["", []];
+    }
+
     // First sort array in such a way that param with default value are last
     // because params with default value have to be last arguments in function arguments list
+    sparams.sort((p1, p2) => {
+        return (p2.default) ? -1 : 1
+    });
 
     for (let p of sparams) {
-        aParams.push(swaggerParam2string(p.in, p.name, p.type, p['default']));
+        aParams.push(swaggerParam2string(p.in, p.name, p.type, p['required'], p['default']));
         switch (p.in.toLocaleLowerCase()) {
             case 'path':
                 imports.push("PathParam");
@@ -156,8 +170,9 @@ function swaggerParams2paramList(sparams: Array<SwaggerParam>): [string, string[
         }
     }
 
-    res = aParams.join(", ");
-
+    if (aParams.length > 0) {
+        res = aParams.join(", ");
+    }
 
     return [res, imports];
 }
