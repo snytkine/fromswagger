@@ -1,0 +1,21 @@
+{
+  "name": "fromswagger",
+  "version": "1.0.0",
+  "description": "Generator of promiseoft project from swagger file",
+  "main": "index.js",
+  "author": "Dmitri Snytkine",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^7.0.18",
+    "esformatter": "^0.10.0",
+    "typescript": "^2.3.2",
+    "typescript-formatter": "^5.1.3"
+  },
+  "bin": {
+    "fromswagger": "./build/index.js"
+  },
+  "dependencies": {
+    "json-schema-to-typescript": "^4.2.0",
+    "swagger-parser": "^3.4.1"
+  }
+}
