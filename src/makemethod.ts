@@ -14,6 +14,9 @@
           }
  */
 
+let aRestMethods = ["get", "post", "put", "delete", "options", "head", "patch"];
+export type restRequestMethod = "get" | "post" | "put" | "delete" | "options" | "head" | "patch"
+
 export interface SwaggerSchemaRef {
     $ref: string
 }
@@ -41,6 +44,20 @@ export interface SwaggerOperation {
     tags?: Array<string>
 }
 
+
+export interface SwaggerPathExtra {
+    ['x-promise-controller']?: string
+    parameters?: Array<any>
+}
+
+
+export type SwaggerPathMethods = {
+    [K in restRequestMethod]? : SwaggerOperation
+    }
+
+
+export type SwaggerPath = SwaggerPathMethods & SwaggerPathExtra;
+
 export interface IMethodDetails {
     summary: string
     methodName: string
@@ -53,9 +70,8 @@ export interface IMethodDetails {
 
 
 export interface IControllerDetails {
-
+    pathUri: string
     controllerName: string,
-    description: string,
     methods: Array<IMethodDetails>
 }
 
@@ -239,7 +255,7 @@ export function makeMethod(methodDetails: IMethodDetails): string {
  * @param controllerDetails
  * @returns {string}
  */
-export function makeController(controllerDetails: IControllerDetails) {
+export function makeController(controllerDetails: IControllerDetails): string {
 
     let imp: string;
     let controllerMethods = controllerDetails.methods.map(m => makeMethod(m)).join("\n\n");
@@ -259,7 +275,6 @@ export function makeController(controllerDetails: IControllerDetails) {
     return `
         import { ${imp} } from 'promiseoft'
         
-        ${controllerDetails.description}
         @Controller
         export default class ${controllerDetails.controllerName} {
         
@@ -267,4 +282,31 @@ export function makeController(controllerDetails: IControllerDetails) {
         
         }
     `
+}
+
+
+/**
+ * Parse one path Item of Swagger paths object and return IControllerDetails object
+ * @param path
+ * @param sp
+ * @returns {{pathUri: string, controllerName: (any|string), methods: Array<IMethodDetails>}}
+ */
+export function parsePath(path: string, sp: SwaggerPath): IControllerDetails {
+
+    let methods: Array<IMethodDetails> = [];
+    let ctrlName = sp['x-promise-controller'] || "";
+
+    for (let m of aRestMethods) {
+        if (sp.hasOwnProperty(m)) {
+            methods.push(parseOperation(path, m, sp[m]));
+        }
+    }
+
+    return {
+        pathUri: path,
+        controllerName: ctrlName,
+        methods: methods
+    }
+
+
 }

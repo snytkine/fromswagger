@@ -42,10 +42,8 @@ let md: IMethodDetails = {
 
 
 let cd: IControllerDetails = {
+    pathUri: "",
     controllerName: "User",
-    description: `/**
-    * User operations
-    **/`,
     methods: [md]
 }
 
