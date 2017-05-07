@@ -155,7 +155,7 @@ function swaggerParams2paramList(sparams: Array<SwaggerParam>): [string, string[
     let aParams: string[] = [];
 
     // If input array is empty then just return empty values
-    if (sparams.length == 0) {
+    if (!sparams || sparams.length == 0) {
         return ["", []];
     }
 
@@ -218,8 +218,8 @@ export function parseOperation(url: string, httpMethod: string, operation: Swagg
     return {
         summary: summary,
         methodName: methodName,
-        methodPath: url,
-        httpMethod: httpMethod,
+        methodPath: `@Path('${url}')`,
+        httpMethod: `@${httpMethod.toUpperCase()}`,
         paramsList: parsedParams[0],
         imports: imports.concat(parsedParams[1]),
         methodReturnType: "JsonResponse<any>"
@@ -291,7 +291,7 @@ export function makeController(controllerDetails: IControllerDetails): string {
  * @param sp
  * @returns {{pathUri: string, controllerName: (any|string), methods: Array<IMethodDetails>}}
  */
-export function parsePath(path: string, sp: SwaggerPath): IControllerDetails {
+export function parsePathItem(path: string, sp: SwaggerPath): IControllerDetails {
 
     let methods: Array<IMethodDetails> = [];
     let ctrlName = sp['x-promise-controller'] || "";
