@@ -1,15 +1,8 @@
 /**
  * Created by snytkind on 5/7/17.
  */
-import {
-    IMethodDetails,
-    parsePathItem,
-    parseOperation,
-    IControllerDetails,
-    makeMethod,
-    makeController
-} from '../makemethod'
-
+import {parsePathItem, makeController} from '../makemethod'
+import {IControllerDetails} from '../interfaces'
 
 let swagger = require("../../swagger.json");
 
