@@ -108,7 +108,10 @@ function swaggerParams2paramList(sparams: Array<SwaggerParam>): [string, string[
 
     for (let p of sparams) {
         aParams.push(swaggerParam2string(p.in, p.name, p.type, p['required'], p['default']));
-        switch (p.in.toLocaleLowerCase()) {
+        if(p.required){
+            imports.push("Required");
+        }
+        switch (p['in'].toLocaleLowerCase()) {
             case 'path':
                 imports.push("PathParam");
                 break;
@@ -144,11 +147,10 @@ export function parseOperation(url: string, httpMethod: string, operation: Swagg
 
     let summary: string = "";
     if (operation.summary && operation.summary.length > 0) {
-        summary = `/**
-        *
+        summary = `
+        /**
         * ${operation.summary}
-        **/
-        `
+        **/`
     }
 
     let imports: string[] = [httpMethod.toUpperCase(), "JsonResponse", "AppResponse"];
@@ -208,11 +210,12 @@ export function makeController(controllerDetails: IControllerDetails): string {
 
     let importsSet = new Set(allimports);
     allimports = Array.from(importsSet);
+    allimports.unshift('Path');
     allimports.unshift('Controller');
+
     imp = allimports.join(",  ");
 
-    return `
-        import { ${imp} } from 'promiseoft'
+    return `import { ${imp} } from 'promiseoft'
         
         @Controller
         export default class ${controllerDetails.controllerName} {

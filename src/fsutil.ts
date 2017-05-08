@@ -7,6 +7,7 @@
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const util = require('util');
 
 export class Fsutil {
 
@@ -47,6 +48,28 @@ export class Fsutil {
         aDirs.forEach(v => {
             this.createDir(v)
         })
+    }
+
+
+    createFileIfNotExists(path:string, content:string): boolean {
+        if(fs.existsSync(path)){
+            console.error("File already exists at path=", path);
+            return false
+        } else {
+            try {
+                fs.writeFileSync(path, content);
+            } catch (e){
+                console.error("Error creating file at path=", path, " Error: ", util.inspect(e));
+                return false;
+            }
+
+            if(!fs.existsSync(path)){
+                console.error("Failed to create file at path=", path);
+                return false
+            }
+        }
+
+        return true;
     }
 }
 
