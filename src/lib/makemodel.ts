@@ -8,8 +8,10 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as util from 'util';
 import {compile, compileFromFile} from 'json-schema-to-typescript'
-import {Formatter} from '../lib/formatter';
+import {Formatter} from './formatter';
+import {SwaggerObject} from './interfaces'
 import {Result} from "typescript-formatter";
+const clone = require('clone');
 
 let parser = new SwaggerParser();
 
@@ -31,6 +33,7 @@ export default ${JSON.stringify(definition, null, 2)}
 `;
 
 
+    console.log("Saving schema: ", objName, " filename: ", modelPath);
     return oFmt.formatAndSaveIfNotExist(modelPath, s).then(result => {
         console.log("Formatted and saved Schema Saved Schema: ", result.dest, " error: ", result.error);
         return true;
@@ -96,20 +99,35 @@ function saveModel(basePath: string, objName: string, definition: object): Promi
 
 export class Definition2Model {
 
+    private swagger_: SwaggerObject;
+    private oFmt: Formatter;
+
     constructor(private readonly basePath: string) {
+        const swagger = require(path.join(basePath, 'swagger.json'));
+        this.swagger_ = clone(swagger);
+        this.oFmt = new Formatter(basePath);
+
+        (Symbol as any).asyncIterator = Symbol.asyncIterator || Symbol.for("Symbol.asyncIterator");
     }
 
     saveSchemaAndModel(modelName: string, schemaObj: object): Promise<boolean> {
         return saveSchema(this.basePath, modelName, schemaObj).then(_ => saveModel(this.basePath, modelName, schemaObj));
     }
+
+
+    async *createModels(): AsyncIterableIterator<boolean> {
+
+        let api = await parser.dereference(this.swagger_);
+        if(api.hasOwnProperty('definitions')){
+            for(let d in api.definitions){
+                console.log("Inside next() iteration of createModel loop");
+                yield this.saveSchemaAndModel(d, api.definitions[d]).catch(e=> {
+                    console.log("Failed to save Model: ", d, " Error: ", util.inspect(e));
+                    return false;
+                })
+            }
+        }
+    }
 }
-
-parser.dereference(swagger).then(api => {
-    //console.log(JSON.stringify(api));
-    const parser = new Definition2Model("/Users/snytkind/WebstormProjects/fromswagger");
-    parser.saveSchemaAndModel("CEHUser", api.definitions.CEHUser);
-    parser.saveSchemaAndModel("NewCEHUser", api.definitions.NewCEHUser);
-
-});
 
 

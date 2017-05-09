@@ -6,6 +6,7 @@
   "author": "Dmitri Snytkine",
   "license": "MIT",
   "devDependencies": {
+    "@types/clone": "^0.1.30",
     "@types/node": "^7.0.18",
     "esformatter": "^0.10.0",
     "typescript": "^2.3.2",
@@ -15,6 +16,7 @@
     "fromswagger": "./build/index.js"
   },
   "dependencies": {
+    "clone": "^2.1.1",
     "json-schema-to-typescript": "^4.2.0",
     "swagger-parser": "^3.4.1"
   }
