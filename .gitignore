@@ -1,7 +1,8 @@
 build/
 .idea/
-Models/
-Controllers/
-Components/
+/Models/
+/Components/
+/Controllers/
 swagger.json
 tsconfig.json
+node_modules/editorconfig/tests/

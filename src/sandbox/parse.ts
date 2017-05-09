@@ -2,6 +2,7 @@
  * Created by snytkind on 5/7/17.
  */
 import {parsePathItem, makeController} from '../makemethod'
+import {Result} from "typescript-formatter";
 
 import {IControllerDetails} from '../interfaces'
 const fs = require('fs');
