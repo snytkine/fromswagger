@@ -36,7 +36,7 @@ export class Formatter {
         const fullPath = path.resolve(this.basePath, relativePath);
         console.log('in formateAndSaveIfNotExists working on file ', fullPath);
         if (fs.existsSync(fullPath)) {
-            const e = `formateAndSaveIfNotExists::File Already Exists ${fullPath}`;
+            const e = `formateAndSaveIfNotExists Error::File Already Exists ${fullPath}`;
             console.error(e);
             return Promise.reject(e)
         } else {

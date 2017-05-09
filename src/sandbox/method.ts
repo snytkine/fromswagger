@@ -1,5 +1,5 @@
-import {makeMethod, makeController} from '../makemethod'
-import {IMethodDetails, IControllerDetails} from '../interfaces'
+import {makeMethod, makeController} from '../lib/makemethod'
+import {IMethodDetails, IControllerDetails} from '../lib/interfaces'
 import {processString} from 'typescript-formatter'
 
 let fmtOptions = {

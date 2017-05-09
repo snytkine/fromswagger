@@ -1,7 +1,14 @@
 /**
  * Created by snytkind on 5/7/17.
  */
-import {SwaggerOperation, SwaggerParam, SwaggerSchemaRef, SwaggerPath, IControllerDetails, IMethodDetails} from './interfaces'
+import {
+    SwaggerOperation,
+    SwaggerParam,
+    SwaggerSchemaRef,
+    SwaggerPath,
+    IControllerDetails,
+    IMethodDetails
+} from './interfaces'
 
 /**
  * {
@@ -108,7 +115,7 @@ function swaggerParams2paramList(sparams: Array<SwaggerParam>): [string, string[
 
     for (let p of sparams) {
         aParams.push(swaggerParam2string(p.in, p.name, p.type, p['required'], p['default']));
-        if(p.required){
+        if (p.required) {
             imports.push("Required");
         }
         switch (p['in'].toLocaleLowerCase()) {
@@ -158,14 +165,54 @@ export function parseOperation(url: string, httpMethod: string, operation: Swagg
 
     let parsedParams = swaggerParams2paramList(operation.parameters);
 
+    let responseDescription = "";
+    let responseType = "JsonResponse<any>";
+    let extraImports: Set<string> = new Set<string>();
+
+    if (operation.responses) {
+        for (const Code in operation.responses) {
+            let httpCode = parseInt(Code, 10);
+            if (!isNaN(httpCode) && httpCode >= 200 && httpCode < 300) {
+                // if httpCode 200 then use it as response
+                // otherwise ? now sure but probably just use JsonResponse<any> then
+                console.log("parsing response type in methodName ", methodName, " for code: ", Code);
+                if (operation.responses[Code]['schema']) {
+                    // have schema. Now look for $ref
+                    // if $ref not found then the schema is defined inline
+                    // in which case we need to save that schema as schema and model in the /Models and then use it here
+                    if (operation.responses[Code]['schema']['$ref']) {
+                        // add extra import like to import model for response from Models dir. Models dir is sibling of Controller Dir
+                        // so we can use relative path: import {model} from '../Models'
+                        let a = operation.responses[Code]['schema']['$ref'].split("/")
+                        if (a.length > 0) {
+                            let model = a[a.length - 1]
+                            if (model) {
+                                extraImports.add(`import {${model}} from '../Models'`);
+                                responseType = `JsonResponse<${model}>`;
+                            }
+                        }
+                    }
+
+                } else {
+                    console.log("No schema in response for code ", Code, " in method ", methodName);
+                    // use just AppResponse, not JsonResponse in this case
+                    // even better is to define special type of IAppResponse CodeOnlyResponse<HttpResponseCode>
+                    // CodeOnlyResponse<HttpResponseCode.SUCCESS>
+                }
+            }
+        }
+    }
+
     return {
         summary: summary,
+        responseDescription: responseDescription,
         methodName: methodName,
-        methodPath: `@Path('${url}')`,
+        methodPathAnnotation: `@Path('${url}')`,
         httpMethod: `@${httpMethod.toUpperCase()}`,
         paramsList: parsedParams[0],
         imports: imports.concat(parsedParams[1]),
-        methodReturnType: "JsonResponse<any>"
+        extraImports: extraImports,
+        methodReturnType: responseType
     }
 
 
@@ -181,7 +228,7 @@ export function makeMethod(methodDetails: IMethodDetails): string {
 
     return `
             ${methodDetails.summary}
-            ${methodDetails.methodPath}
+            ${methodDetails.methodPathAnnotation}
             ${methodDetails.httpMethod}
             ${methodDetails.methodName}(${methodDetails.paramsList}): Promise<${methodDetails.methodReturnType}> {
             
@@ -203,11 +250,20 @@ export function makeController(controllerDetails: IControllerDetails): string {
     let imp: string;
     let controllerMethods = controllerDetails.methods.map(m => makeMethod(m)).join("\n\n");
     let allimports: string[] = [];
+    let modelImports: Set<string> = new Set<string>();
 
     controllerDetails.methods.forEach(v => {
         allimports = allimports.concat(v.imports);
+        for (const imp of v.extraImports) {
+            modelImports.add(imp);
+        }
     });
 
+    let sModelImports: string = "";
+    let aModelImports = Array.from(modelImports);
+    //if(aModelImports.length > 0){
+    sModelImports = aModelImports.join("\n");
+    //}
     let importsSet = new Set(allimports);
     allimports = Array.from(importsSet);
     allimports.unshift('Path');
@@ -215,8 +271,10 @@ export function makeController(controllerDetails: IControllerDetails): string {
 
     imp = allimports.join(",  ");
 
+
     return `import { ${imp} } from 'promiseoft'
-        
+        ${sModelImports}
+
         @Controller
         export default class ${controllerDetails.controllerName} {
         

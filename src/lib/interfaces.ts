@@ -3,6 +3,11 @@
  */
 export type restRequestMethod = "get" | "post" | "put" | "delete" | "options" | "head" | "patch"
 
+export interface SwaggerObject {
+    paths: object
+    definitions: object
+}
+
 export interface SwaggerSchemaRef {
     $ref: string
 }
@@ -46,12 +51,15 @@ export type SwaggerPath = SwaggerPathMethods & SwaggerPathExtra;
 
 export interface IMethodDetails {
     summary: string
+    controllerName?:string
+    responseDescription: string
     methodName: string
-    methodPath: string
+    methodPathAnnotation: string
     httpMethod: string
     paramsList: string
     methodReturnType: string
     imports: Array<string>
+    extraImports: Set<string>
 }
 
 

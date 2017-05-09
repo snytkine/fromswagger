@@ -8,18 +8,18 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as util from 'util';
 import {compile, compileFromFile} from 'json-schema-to-typescript'
-import {Formatter} from '../formatter';
+import {Formatter} from '../lib/formatter';
 import {Result} from "typescript-formatter";
 
 let parser = new SwaggerParser();
 
-const ModelsDir = 'src/Models';
+const MODELS_DIR = 'src/Models';
 
 function saveSchema(basePath: string, objName: string, definition: object): Promise<boolean> {
 
     const oFmt = new Formatter(basePath);
     const fileName = (objName + "_schema.ts").toLocaleLowerCase();
-    const modelPath = path.join(ModelsDir, fileName);
+    const modelPath = path.join(MODELS_DIR, fileName);
 
     if (!definition.hasOwnProperty('$schema')) {
         // make $schema the first element, otherwise simple adding new property adds it as last
@@ -46,7 +46,7 @@ export default ${JSON.stringify(definition, null, 2)}
  * @param modelFileName
  */
 function updateModelsIndex(basePath, modelFileName): Promise<boolean> {
-    const indexPath = path.join(basePath, ModelsDir, 'index.ts');
+    const indexPath = path.join(basePath, MODELS_DIR, 'index.ts');
     console.log('Models/index file=', indexPath);
 
     const line = `export * from './${modelFileName}'\n`;
@@ -68,7 +68,7 @@ function saveModel(basePath: string, objName: string, definition: object): Promi
 // add  "$schema": "http://json-schema.org/draft-04/schema#" to object if it does not exist already
 
     const fileName = (objName + ".ts").toLocaleLowerCase();
-    const modelPath = path.join(ModelsDir, fileName);
+    const modelPath = path.join(MODELS_DIR, fileName);
     console.log("in saveModel modelPath=", modelPath);
     definition['additionalProperties'] = false;
 
@@ -107,7 +107,7 @@ export class Definition2Model {
 parser.dereference(swagger).then(api => {
     //console.log(JSON.stringify(api));
     const parser = new Definition2Model("/Users/snytkind/WebstormProjects/fromswagger");
-    parser.saveSchemaAndModel("updateCEHUser", api.definitions.updateCEHUser);
+    parser.saveSchemaAndModel("CEHUser", api.definitions.CEHUser);
     parser.saveSchemaAndModel("NewCEHUser", api.definitions.NewCEHUser);
 
 });

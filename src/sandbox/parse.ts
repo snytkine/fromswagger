@@ -1,10 +1,11 @@
 /**
  * Created by snytkind on 5/7/17.
  */
-import {parsePathItem, makeController} from '../makemethod'
+import {parsePathItem, makeController} from '../lib/makemethod'
 import {Result} from "typescript-formatter";
 
-import {IControllerDetails} from '../interfaces'
+
+import {IControllerDetails} from '../lib/interfaces'
 const fs = require('fs');
 const path = require('path');
 import * as tsfmt from "typescript-formatter";
@@ -34,7 +35,7 @@ const formatterOptions = {
     tsfmtFile: null
 }
 
-aControllers = aPathItems.map(o => makeController(o));
+//aControllers = aPathItems.map(o => makeController(o));
 
 
 // now save controllers to files
@@ -61,6 +62,7 @@ aPathItems.forEach((o, i) => {
         console.log("Curr dir: ", __dirname);
     }
 });
+
 //let res = parseOperation('/user/{assocId}', 'get', swagger.paths['/user/{assocId}']['get']);
 
 
