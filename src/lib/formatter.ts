@@ -19,7 +19,7 @@ export class Formatter {
             dryRun: false,
             replace: true,
             verify: false,
-            tsconfig: true,
+            tsconfig: false,
             tslint: true,
             editorconfig: true,
             tsfmt: true,

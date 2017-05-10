@@ -20,37 +20,44 @@ let cc = new CreateControllers(mypath);
 let cm = new Definition2Model(mypath);
 
 
-async function makeModels() {
+async function makeModels(): Promise<[number, number]> {
 
-    let i = 0;
+    let i = 0, j = 0;
     try {
         for await (const x of  cm.createModels()) {
             console.log("Fulfilled one model. Created: " + util.inspect(x));
             i++;
+            if(x){
+                j++;
+            }
 
         }
-    } catch (ex){
+    } catch (ex) {
         console.error("Caught EX inside makeModels for..of: ", util.inspect(ex));
     }
 
-    return i;
+    return [i, j];
 
 }
 
-async function makeControllers(numModels:number) {
+async function makeControllers(numModels: [number, number]): Promise<string> {
 
-    let i = 0;
+    let i = 0, j = 0;
     try {
         for await (const x of  cc.createControllers()) {
             console.log("Fulfilled one controller. Created: " + util.inspect(x));
+
             i++;
+            if (x) {
+                j++
+            }
 
         }
-    } catch (ex){
+    } catch (ex) {
         console.error("Caught EX inside for..of: ", util.inspect(ex));
     }
 
-    return `Processed ${numModels} Models And ${i} Controllers`;
+    return `============================\nModels Processed ${numModels[0]}. Models Created: ${numModels[1]}.\nControllers Processed: ${i}. Controllers Created: ${j}`;
 
 }
 
@@ -58,5 +65,5 @@ async function makeControllers(numModels:number) {
 makeModels().then(makeControllers).then(result => {
     console.log(result);
 }).catch(e => {
-    console.error("INSIDE Code Generator .catch with error: ", e);
+    console.error("INSIDE Code Generator .catch with Error: ", util.inspect(e));
 });

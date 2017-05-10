@@ -169,6 +169,7 @@ function swaggerParams2paramList(sparams: Array<SwaggerParam>): [string, string[
 
     if (aParams.length > 0) {
         res = aParams.join(", ");
+        //console.log(`PARAMS LIST: (${res})`);
     }
 
     return [res, imports, extraImports];

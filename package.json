@@ -1,6 +1,6 @@
 {
   "name": "fromswagger",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Generator of promiseoft project from swagger file",
   "main": "index.js",
   "author": "Dmitri Snytkine",
