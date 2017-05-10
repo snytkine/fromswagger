@@ -39,7 +39,7 @@ export class CreateControllers {
                 //return false;
             }
 
-            console.log("Saved controller ", ctrlName, ' path: ', res.dest);
+            //console.log("Saved controller ", ctrlName, ' path: ', res.dest);
             return true;
 
         })
@@ -52,7 +52,7 @@ export class CreateControllers {
         if (this.swagger_.hasOwnProperty('paths')) {
             let i = 1;
             for (let path in this.swagger_.paths) {
-                console.log("Inside next loop of createControllers");
+                //console.log("Inside next loop of createControllers");
                 let fname: string;
                 if (this.swagger_.paths.hasOwnProperty(path)) {
                     let x = parsePathItem(path, this.swagger_.paths[path]);

@@ -23,15 +23,35 @@ import {
 
 let aRestMethods = ["get", "post", "put", "delete", "options", "head", "patch"];
 
+function modelNameFromParamSchema(param: SwaggerParam): string {
+    let ret: string = "";
 
-function swaggerParam2string(i: string, pname: string, ptype: string, required, defaultVal): string {
+    if (param.schema && param.schema['$ref']) {
+        const a = param.schema['$ref'].split("/");
+        if (a.length > 0) {
+            ret = a[a.length - 1];
+            console.log("Extracted paramType from schema.$ref: ", ret);
+        }
+    }
+
+
+    return ret;
+}
+
+function swaggerParam2string(param: SwaggerParam): [string, string] {
 
     let decorator: string;
     let _required: string = "";
     let name: string;
     let type: string = "any";
-    let ret = "";
+    let bodyModel = "";
+    let ret: [string, string] = ["", bodyModel];
 
+    let i: string = param['in'];
+    let pname: string = param.name
+    let ptype: string = param.type
+    let required = param.required;
+    let defaultVal = param.default;
 
     if (required) {
         _required = "@Required ";
@@ -73,6 +93,10 @@ function swaggerParam2string(i: string, pname: string, ptype: string, required, 
 
         case "body":
             decorator = "@RequestBody";
+            type = modelNameFromParamSchema(param) || "any";
+            if (type != "any") {
+                bodyModel = type;
+            }
             name = pname;
             break;
         default:
@@ -80,11 +104,11 @@ function swaggerParam2string(i: string, pname: string, ptype: string, required, 
     }
 
     if (decorator != "") {
-        ret = `${decorator} ${_required}${name}:${type}`;
+        ret = [`${decorator} ${_required}${name}:${type}`, bodyModel];
     }
 
-    if (ret !== "" && defaultVal) {
-        ret += ` = "${defaultVal}"`;
+    if (ret[0] !== "" && defaultVal) {
+        ret[0] += ` = "${defaultVal}"`;
     }
 
     return ret;
@@ -94,17 +118,18 @@ function swaggerParam2string(i: string, pname: string, ptype: string, required, 
 /**
  * Convert array of SwaggerParam into tuple [methodParams, array of promiseofT imports]
  * @param sparams
- * @returns {[string,string[]]}
+ * @returns {[string,string[], string[]} params line, array of promiseoft imports, array of extra import lines (for model imports)
  */
-function swaggerParams2paramList(sparams: Array<SwaggerParam>): [string, string[]] {
+function swaggerParams2paramList(sparams: Array<SwaggerParam>): [string, string[], string[]] {
 
     let res = "";
     let imports: string[] = [];
     let aParams: string[] = [];
+    let extraImports: string[] = [];
 
     // If input array is empty then just return empty values
     if (!sparams || sparams.length == 0) {
-        return ["", []];
+        return ["", [], extraImports];
     }
 
     // First sort array in such a way that param with default value are last
@@ -114,7 +139,12 @@ function swaggerParams2paramList(sparams: Array<SwaggerParam>): [string, string[
     });
 
     for (let p of sparams) {
-        aParams.push(swaggerParam2string(p.in, p.name, p.type, p['required'], p['default']));
+        let x = swaggerParam2string(p);
+        if (x[1] != "") {
+            extraImports.push(`import {${x[1]}} from '../Models'`);
+        }
+
+        aParams.push(x[0]);
         if (p.required) {
             imports.push("Required");
         }
@@ -141,7 +171,7 @@ function swaggerParams2paramList(sparams: Array<SwaggerParam>): [string, string[
         res = aParams.join(", ");
     }
 
-    return [res, imports];
+    return [res, imports, extraImports];
 }
 
 
@@ -168,6 +198,13 @@ export function parseOperation(url: string, httpMethod: string, operation: Swagg
     let responseDescription = "";
     let responseType = "JsonResponse<any>";
     let extraImports: Set<string> = new Set<string>();
+
+    if (parsedParams[2].length > 0) {
+        for (const j of parsedParams[2]) {
+            extraImports.add(j);
+        }
+    }
+
 
     if (operation.responses) {
         for (const Code in operation.responses) {
@@ -230,7 +267,7 @@ export function makeMethod(methodDetails: IMethodDetails): string {
             ${methodDetails.summary}
             ${methodDetails.methodPathAnnotation}
             ${methodDetails.httpMethod}
-            ${methodDetails.methodName}(${methodDetails.paramsList}): Promise<${methodDetails.methodReturnType}> {
+            async ${methodDetails.methodName}(${methodDetails.paramsList}): Promise<${methodDetails.methodReturnType}> {
             
             
             }
