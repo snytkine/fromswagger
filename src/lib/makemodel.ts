@@ -35,14 +35,14 @@ export default ${JSON.stringify(definition, null, 2)}
 
     console.log("Saving schema: ", objName, " filename: ", modelPath);
     return oFmt.formatAndSaveIfNotExist(modelPath, s).then(result => {
-        console.log("Formatted and saved Schema Saved Schema: ", result.dest, " error: ", result.error);
+        //console.log("Formatted and saved Schema Saved Schema: ", result.dest, " error: ", result.error);
         return true;
     });
 
 }
 
 /**
- * Updated index.ts with a "export {ModelName} from './modelfile.ts'"
+ * Updated index.ts with a "export * from './modelfile.ts'"
  *
  * @param basePath
  * @param modelName
@@ -72,7 +72,7 @@ function saveModel(basePath: string, objName: string, definition: object): Promi
 
     const fileName = (objName + ".ts").toLocaleLowerCase();
     const modelPath = path.join(MODELS_DIR, fileName);
-    console.log("in saveModel modelPath=", modelPath);
+    //console.log("in saveModel modelPath=", modelPath);
     definition['additionalProperties'] = false;
 
     return compile(definition, objName).then(ts => {
@@ -84,13 +84,13 @@ function saveModel(basePath: string, objName: string, definition: object): Promi
         @JsonSchema(Schema)
         ${ts}
         `;
-        console.log("CREATED MODEL: ", s);
+        //console.log("CREATED MODEL: ", s);
         return Promise.resolve(s);
     }).then(ts => {
         const oFmt = new Formatter(basePath);
         return oFmt.formatAndSaveIfNotExist(modelPath, ts);
     }).then(result => {
-        console.log("Formatted and saved model: ", JSON.stringify(result));
+        //console.log("Formatted and saved model: ", JSON.stringify(result));
 
         return updateModelsIndex(basePath, objName.toLocaleLowerCase());
     })

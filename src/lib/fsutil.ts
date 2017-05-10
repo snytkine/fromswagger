@@ -11,7 +11,7 @@ const util = require('util');
 
 export class Fsutil {
 
-    basePath:string;
+    basePath: string;
 
     constructor(base) {
         console.log("ENTERED constructor");
@@ -26,7 +26,7 @@ export class Fsutil {
 
 
     createDir(dir) {
-        let dirPath = this.basePath + path.sep + dir;
+        let dirPath = path.join(this.basePath, dir);
         if (!fs.existsSync(dirPath)) {
             console.log("Directory does not exist ", dirPath);
             fs.mkdirSync(dirPath);
@@ -51,19 +51,19 @@ export class Fsutil {
     }
 
 
-    createFileIfNotExists(path:string, content:string): boolean {
-        if(fs.existsSync(path)){
+    createFileIfNotExists(path: string, content: string): boolean {
+        if (fs.existsSync(path)) {
             console.error("File already exists at path=", path);
             return false
         } else {
             try {
                 fs.writeFileSync(path, content);
-            } catch (e){
+            } catch (e) {
                 console.error("Error creating file at path=", path, " Error: ", util.inspect(e));
                 return false;
             }
 
-            if(!fs.existsSync(path)){
+            if (!fs.existsSync(path)) {
                 console.error("Failed to create file at path=", path);
                 return false
             }
