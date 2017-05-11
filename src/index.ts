@@ -3,18 +3,30 @@
 import {Fsutil} from './lib/fsutil';
 import {CreateControllers} from './lib/makecontroller'
 import {Definition2Model} from './lib/makemodel';
-
+import app_ts from './lib/app';
+import {FileTemplates} from './lib/settings';
 
 const util = require('util');
-let mypath = process.cwd();
+const mypath = process.cwd();
 
-console.log(mypath);
+const SRC_DIR = "src";
+const SETTINGS_DIR = "src/Settings/";
+const COMPONENTS_DIR = "src/Components";
+const MIDDLEWARE_DIR = "src/Middleware";
+const MODELS_DIR = "src/Models";
+const CONTROLLERS_DIR = "src/Controllers";
+
+console.log(`Starting generating project files in ${mypath}`);
 
 let o = new Fsutil(mypath);
-let aDirs = ["src/Controllers", "src/Models"];
-o.createDir('src');
+let aDirs = [CONTROLLERS_DIR, MODELS_DIR, COMPONENTS_DIR, SETTINGS_DIR, MIDDLEWARE_DIR];
+o.createDir(SRC_DIR);
 o.createDirs(aDirs);
+o.createFileIfNotExists(SRC_DIR + '/app.ts', app_ts);
 
+for (const ft of FileTemplates) {
+    o.createFileIfNotExists(SETTINGS_DIR + ft[0], ft[1]);
+}
 
 let cc = new CreateControllers(mypath);
 let cm = new Definition2Model(mypath);
@@ -27,7 +39,7 @@ async function makeModels(): Promise<[number, number]> {
         for await (const x of  cm.createModels()) {
             console.log("Fulfilled one model. Created: " + util.inspect(x));
             i++;
-            if(x){
+            if (x) {
                 j++;
             }
 
@@ -58,7 +70,6 @@ async function makeControllers(numModels: [number, number]): Promise<string> {
     }
 
     return `============================\nModels Processed ${numModels[0]}. Models Created: ${numModels[1]}.\nControllers Processed: ${i}. Controllers Created: ${j}`;
-
 }
 
 

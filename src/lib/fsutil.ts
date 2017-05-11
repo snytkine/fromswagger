@@ -71,5 +71,38 @@ export class Fsutil {
 
         return true;
     }
+
+
+    copyFileIfNotExists(source: string, dest: string) {
+
+        const sourceFile = path.join(__dirname, path);
+        const destFile = path.join(this.basePath, dest);
+        console.log(`Entered copyFileIfNotExists sourceFile: ${sourceFile} dest: ${destFile}`);
+        // if dest exists exit
+        if (fs.existsSync(destFile)) {
+            console.error("Cannot Copy File because File already exists at path=", destFile);
+            return false
+        }
+
+        // Check that source file exists if not exit
+        if (fs.existsSync(sourceFile)) {
+            console.error("Cannot Copy File because Source File does NOT exist at: ", sourceFile);
+            return false
+        }
+
+        // now copy
+        let sourceStream = fs.createReadStream(sourceFile);
+        let destStream = fs.createWriteStream(destFile);
+        sourceStream.on('error', (err) => {
+            console.error(`Error Reading source file ${sourceFile} err: ${util.inspect(err)}`)
+        });
+
+        destStream.on('error', (err) => {
+            console.error(`Error Writing to dest file ${sourceFile} err: ${util.inspect(err)}`)
+        });
+
+        sourceStream.pipe(destStream);
+
+    }
 }
 
