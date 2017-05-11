@@ -2,12 +2,12 @@
  * Created by snytkind on 5/7/17.
  */
 import {
-    SwaggerOperation,
-    SwaggerParam,
-    SwaggerSchemaRef,
-    SwaggerPath,
-    IControllerDetails,
-    IMethodDetails
+  SwaggerOperation,
+  SwaggerParam,
+  SwaggerSchemaRef,
+  SwaggerPath,
+  IControllerDetails,
+  IMethodDetails
 } from './interfaces'
 
 /**
@@ -22,96 +22,97 @@ import {
  */
 
 let aRestMethods = ["get", "post", "put", "delete", "options", "head", "patch"];
+const X_CONTROLLER_NAME = 'x-promise-controller';
 
 function modelNameFromParamSchema(param: SwaggerParam): string {
-    let ret: string = "";
+  let ret: string = "";
 
-    if (param.schema && param.schema['$ref']) {
-        const a = param.schema['$ref'].split("/");
-        if (a.length > 0) {
-            ret = a[a.length - 1];
-            console.log("Extracted paramType from schema.$ref: ", ret);
-        }
+  if (param.schema && param.schema['$ref']) {
+    const a = param.schema['$ref'].split("/");
+    if (a.length > 0) {
+      ret = a[a.length - 1];
+      console.log("Extracted paramType from schema.$ref: ", ret);
     }
+  }
 
 
-    return ret;
+  return ret;
 }
 
 function swaggerParam2string(param: SwaggerParam): [string, string] {
 
-    let decorator: string;
-    let _required: string = "";
-    let name: string;
-    let type: string = "any";
-    let bodyModel = "";
-    let ret: [string, string] = ["", bodyModel];
+  let decorator: string;
+  let _required: string = "";
+  let name: string;
+  let type: string = "any";
+  let bodyModel = "";
+  let ret: [string, string] = ["", bodyModel];
 
-    let i: string = param['in'];
-    let pname: string = param.name
-    let ptype: string = param.type
-    let required = param.required;
-    let defaultVal = param.default;
+  let i: string = param['in'];
+  let pname: string = param.name
+  let ptype: string = param.type
+  let required = param.required;
+  let defaultVal = param.default;
 
-    if (required) {
-        _required = "@Required ";
-    }
+  if (required) {
+    _required = "@Required ";
+  }
 
-    switch (ptype) {
-        case "number":
-        case "integer":
-            type = "number";
-            break;
+  switch (ptype) {
+    case "number":
+    case "integer":
+      type = "number";
+      break;
 
-        case "boolean":
-            type = "boolean";
-            break;
+    case "boolean":
+      type = "boolean";
+      break;
 
-        case "string":
-            type = "string";
-            break;
+    case "string":
+      type = "string";
+      break;
 
-        default:
-            type = "any"
-    }
+    default:
+      type = "any"
+  }
 
-    switch (i.toLocaleLowerCase()) {
-        case 'path':
-            decorator = `@PathParam('${pname}')`;
-            name = pname;
-            break;
+  switch (i.toLocaleLowerCase()) {
+    case 'path':
+      decorator = `@PathParam('${pname}')`;
+      name = pname;
+      break;
 
-        case "query":
-            decorator = `@QueryParam('${pname}')`;
-            name = pname;
-            break;
+    case "query":
+      decorator = `@QueryParam('${pname}')`;
+      name = pname;
+      break;
 
-        case "header":
-            decorator = `@HeaderParam('${pname}')`;
-            name = pname;
-            break;
+    case "header":
+      decorator = `@HeaderParam('${pname}')`;
+      name = pname;
+      break;
 
-        case "body":
-            decorator = "@RequestBody";
-            type = modelNameFromParamSchema(param) || "any";
-            if (type != "any") {
-                bodyModel = type;
-            }
-            name = pname;
-            break;
-        default:
-            decorator = ""
-    }
+    case "body":
+      decorator = "@RequestBody";
+      type = modelNameFromParamSchema(param) || "any";
+      if (type != "any") {
+        bodyModel = type;
+      }
+      name = pname;
+      break;
+    default:
+      decorator = ""
+  }
 
-    if (decorator != "") {
-        ret = [`${decorator} ${_required}${name}:${type}`, bodyModel];
-    }
+  if (decorator != "") {
+    ret = [`${decorator} ${_required}${name}:${type}`, bodyModel];
+  }
 
-    if (ret[0] !== "" && defaultVal) {
-        ret[0] += ` = "${defaultVal}"`;
-    }
+  if (ret[0] !== "" && defaultVal) {
+    ret[0] += ` = "${defaultVal}"`;
+  }
 
-    return ret;
+  return ret;
 }
 
 
@@ -122,57 +123,57 @@ function swaggerParam2string(param: SwaggerParam): [string, string] {
  */
 function swaggerParams2paramList(sparams: Array<SwaggerParam>): [string, string[], string[]] {
 
-    let res = "";
-    let imports: string[] = [];
-    let aParams: string[] = [];
-    let extraImports: string[] = [];
+  let res = "";
+  let imports: string[] = [];
+  let aParams: string[] = [];
+  let extraImports: string[] = [];
 
-    // If input array is empty then just return empty values
-    if (!sparams || sparams.length == 0) {
-        return ["", [], extraImports];
+  // If input array is empty then just return empty values
+  if (!sparams || sparams.length == 0) {
+    return ["", [], extraImports];
+  }
+
+  // First sort array in such a way that param with default value are last
+  // because params with default value have to be last arguments in function arguments list
+  sparams.sort((p1, p2) => {
+    return (p2.default) ? -1 : 1
+  });
+
+  for (let p of sparams) {
+    let x = swaggerParam2string(p);
+    if (x[1] != "") {
+      extraImports.push(`import {${x[1]}} from '../Models'`);
     }
 
-    // First sort array in such a way that param with default value are last
-    // because params with default value have to be last arguments in function arguments list
-    sparams.sort((p1, p2) => {
-        return (p2.default) ? -1 : 1
-    });
-
-    for (let p of sparams) {
-        let x = swaggerParam2string(p);
-        if (x[1] != "") {
-            extraImports.push(`import {${x[1]}} from '../Models'`);
-        }
-
-        aParams.push(x[0]);
-        if (p.required) {
-            imports.push("Required");
-        }
-        switch (p['in'].toLocaleLowerCase()) {
-            case 'path':
-                imports.push("PathParam");
-                break;
-
-            case 'query':
-                imports.push("QueryParam");
-                break;
-
-            case 'header':
-                imports.push("HeaderParam");
-                break;
-
-            case 'body':
-                imports.push("RequestBody");
-                break;
-        }
+    aParams.push(x[0]);
+    if (p.required) {
+      imports.push("Required");
     }
+    switch (p['in'].toLocaleLowerCase()) {
+      case 'path':
+        imports.push("PathParam");
+        break;
 
-    if (aParams.length > 0) {
-        res = aParams.join(", ");
-        //console.log(`PARAMS LIST: (${res})`);
+      case 'query':
+        imports.push("QueryParam");
+        break;
+
+      case 'header':
+        imports.push("HeaderParam");
+        break;
+
+      case 'body':
+        imports.push("RequestBody");
+        break;
     }
+  }
 
-    return [res, imports, extraImports];
+  if (aParams.length > 0) {
+    res = aParams.join(", ");
+    //console.log(`PARAMS LIST: (${res})`);
+  }
+
+  return [res, imports, extraImports];
 }
 
 
@@ -181,78 +182,84 @@ function swaggerParams2paramList(sparams: Array<SwaggerParam>): [string, string[
  * Parse one operation for a uri and return object of IMethodDetails type
  *
  **/
-export function parseOperation(url: string, httpMethod: string, operation: SwaggerOperation): IMethodDetails {
+export function parseOperation(url: string, httpMethod: string, operation: SwaggerOperation, pathID: number): IMethodDetails {
 
-    let summary: string = "";
-    if (operation.summary && operation.summary.length > 0) {
-        summary = `
+  const ctrlName = operation[X_CONTROLLER_NAME] || `controller${pathID}`;
+  const isNamedController = operation.hasOwnProperty(X_CONTROLLER_NAME);
+
+  let summary: string = "";
+  if (operation.summary && operation.summary.length > 0) {
+    summary = `
         /**
         * ${operation.summary}
         **/`
+  }
+
+  let imports: string[] = [httpMethod.toUpperCase(), "JsonResponse", "AppResponse"];
+  let methodName = operation.operationId || `do${httpMethod.toUpperCase()}`;
+
+  let parsedParams = swaggerParams2paramList(operation.parameters);
+
+  let responseDescription = "";
+  let responseType = "JsonResponse";
+  let extraImports: Set<string> = new Set<string>();
+
+  if (parsedParams[2].length > 0) {
+    for (const j of parsedParams[2]) {
+      extraImports.add(j);
     }
-
-    let imports: string[] = [httpMethod.toUpperCase(), "JsonResponse", "AppResponse"];
-    let methodName = operation.operationId || `do${httpMethod.toUpperCase()}`;
-
-    let parsedParams = swaggerParams2paramList(operation.parameters);
-
-    let responseDescription = "";
-    let responseType = "JsonResponse";
-    let extraImports: Set<string> = new Set<string>();
-
-    if (parsedParams[2].length > 0) {
-        for (const j of parsedParams[2]) {
-            extraImports.add(j);
-        }
-    }
+  }
 
 
-    if (operation.responses) {
-        for (const Code in operation.responses) {
-            let httpCode = parseInt(Code, 10);
-            if (!isNaN(httpCode) && httpCode >= 200 && httpCode < 300) {
-                // if httpCode 200 then use it as response
-                // otherwise ? now sure but probably just use JsonResponse<any> then
-                console.log("parsing response type in methodName ", methodName, " for code: ", Code);
-                if (operation.responses[Code]['schema']) {
-                    // have schema. Now look for $ref
-                    // if $ref not found then the schema is defined inline
-                    // in which case we need to save that schema as schema and model in the /Models and then use it here
-                    if (operation.responses[Code]['schema']['$ref']) {
-                        // add extra import like to import model for response from Models dir. Models dir is sibling of Controller Dir
-                        // so we can use relative path: import {model} from '../Models'
-                        let a = operation.responses[Code]['schema']['$ref'].split("/")
-                        if (a.length > 0) {
-                            let model = a[a.length - 1]
-                            if (model) {
-                                extraImports.add(`import {${model}} from '../Models'`);
-                                // JsonResponse is not generic at this time, later it will be
-                                //responseType = `JsonResponse<${model}>`;
-                            }
-                        }
-                    }
-
-                } else {
-                    console.log("No schema in response for code ", Code, " in method ", methodName);
-                    // use just AppResponse, not JsonResponse in this case
-                    // even better is to define special type of IAppResponse CodeOnlyResponse<HttpResponseCode>
-                    // CodeOnlyResponse<HttpResponseCode.SUCCESS>
-                }
+  if (operation.responses) {
+    for (const Code in operation.responses) {
+      let httpCode = parseInt(Code, 10);
+      if (!isNaN(httpCode) && httpCode >= 200 && httpCode < 300) {
+        // if httpCode 200 then use it as response
+        // otherwise ? now sure but probably just use JsonResponse<any> then
+        console.log("parsing response type in methodName ", methodName, " for code: ", Code);
+        if (operation.responses[Code]['schema']) {
+          // have schema. Now look for $ref
+          // if $ref not found then the schema is defined inline
+          // in which case we need to save that schema as schema and model in the /Models and then use it here
+          if (operation.responses[Code]['schema']['$ref']) {
+            // add extra import like to import model for response from Models dir. Models dir is sibling of Controller Dir
+            // so we can use relative path: import {model} from '../Models'
+            let a = operation.responses[Code]['schema']['$ref'].split("/")
+            if (a.length > 0) {
+              let model = a[a.length - 1]
+              if (model) {
+                extraImports.add(`import {${model}} from '../Models'`);
+                // JsonResponse is not generic at this time, later it will be
+                //responseType = `JsonResponse<${model}>`;
+              }
             }
-        }
-    }
+          }
 
-    return {
-        summary: summary,
-        responseDescription: responseDescription,
-        methodName: methodName,
-        methodPathAnnotation: `@Path('${url}')`,
-        httpMethod: `@${httpMethod.toUpperCase()}`,
-        paramsList: parsedParams[0],
-        imports: imports.concat(parsedParams[1]),
-        extraImports: extraImports,
-        methodReturnType: responseType
+        } else {
+          console.log("No schema in response for code ", Code, " in method ", methodName);
+          // use just AppResponse, not JsonResponse in this case
+          // even better is to define special type of IAppResponse CodeOnlyResponse<HttpResponseCode>
+          // CodeOnlyResponse<HttpResponseCode.SUCCESS>
+        }
+      }
     }
+  }
+
+  return {
+    summary: summary,
+    pathUri: url,
+    controllerName: ctrlName,
+    isNamedController:isNamedController,
+    responseDescription: responseDescription,
+    methodName: methodName,
+    methodPathAnnotation: `@Path('${url}')`,
+    httpMethod: `@${httpMethod.toUpperCase()}`,
+    paramsList: parsedParams[0],
+    imports: imports.concat(parsedParams[1]),
+    extraImports: extraImports,
+    methodReturnType: responseType
+  }
 
 
 }
@@ -265,7 +272,7 @@ export function parseOperation(url: string, httpMethod: string, operation: Swagg
  */
 export function makeMethod(methodDetails: IMethodDetails): string {
 
-    return `
+  return `
             ${methodDetails.summary}
             ${methodDetails.methodPathAnnotation}
             ${methodDetails.httpMethod}
@@ -286,32 +293,32 @@ export function makeMethod(methodDetails: IMethodDetails): string {
  */
 export function makeController(controllerDetails: IControllerDetails): string {
 
-    let imp: string;
-    let controllerMethods = controllerDetails.methods.map(m => makeMethod(m)).join("\n\n");
-    let allimports: string[] = [];
-    let modelImports: Set<string> = new Set<string>();
+  let imp: string;
+  let controllerMethods = controllerDetails.methods.map(m => makeMethod(m)).join("\n\n");
+  let allimports: string[] = [];
+  let modelImports: Set<string> = new Set<string>();
 
-    controllerDetails.methods.forEach(v => {
-        allimports = allimports.concat(v.imports);
-        for (const imp of v.extraImports) {
-            modelImports.add(imp);
-        }
-    });
+  controllerDetails.methods.forEach(v => {
+    allimports = allimports.concat(v.imports);
+    for (const imp of v.extraImports) {
+      modelImports.add(imp);
+    }
+  });
 
-    let sModelImports: string = "";
-    let aModelImports = Array.from(modelImports);
-    //if(aModelImports.length > 0){
-    sModelImports = aModelImports.join("\n");
-    //}
-    let importsSet = new Set(allimports);
-    allimports = Array.from(importsSet);
-    allimports.unshift('Path');
-    allimports.unshift('Controller');
+  let sModelImports: string = "";
+  let aModelImports = Array.from(modelImports);
+  //if(aModelImports.length > 0){
+  sModelImports = aModelImports.join("\n");
+  //}
+  let importsSet = new Set(allimports);
+  allimports = Array.from(importsSet);
+  allimports.unshift('Path');
+  allimports.unshift('Controller');
 
-    imp = allimports.join(",  ");
+  imp = allimports.join(",  ");
 
 
-    return `import { ${imp} } from 'promiseoft'
+  return `import { ${imp} } from 'promiseoft'
         ${sModelImports}
 
         @Controller
@@ -324,6 +331,20 @@ export function makeController(controllerDetails: IControllerDetails): string {
 }
 
 
+export function parsePathElement(pathUri: string, sp: SwaggerPath, pathID: number): Array<IMethodDetails> {
+  //const ctrlName = sp[X_CONTROLLER_NAME] || `controller${pathID}`;
+  let methods: Array<IMethodDetails> = [];
+
+  for (let m of aRestMethods) {
+    if (sp.hasOwnProperty(m)) {
+      methods.push(parseOperation(pathUri, m, sp[m], pathID));
+    }
+  }
+
+  return methods;
+}
+
+
 /**
  * Parse one path Item of Swagger paths object and return IControllerDetails object
  * @param path
@@ -332,20 +353,20 @@ export function makeController(controllerDetails: IControllerDetails): string {
  */
 export function parsePathItem(path: string, sp: SwaggerPath): IControllerDetails {
 
-    let methods: Array<IMethodDetails> = [];
-    let ctrlName = sp['x-promise-controller'] || "";
+  let methods: Array<IMethodDetails> = [];
+  let ctrlName = sp[X_CONTROLLER_NAME] || "";
 
-    for (let m of aRestMethods) {
-        if (sp.hasOwnProperty(m)) {
-            methods.push(parseOperation(path, m, sp[m]));
-        }
+  for (let m of aRestMethods) {
+    if (sp.hasOwnProperty(m)) {
+      methods.push(parseOperation(path, m, sp[m], 0))
     }
+  }
 
-    return {
-        pathUri: path,
-        controllerName: ctrlName,
-        methods: methods
-    }
+  return {
+    pathUri: path,
+    controllerName: ctrlName,
+    methods: methods
+  }
 
 
 }

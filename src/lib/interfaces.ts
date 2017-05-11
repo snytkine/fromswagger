@@ -33,6 +33,7 @@ export interface SwaggerOperation {
     parameters?: Array<SwaggerParam>
     responses: { [key: string]: any }
     tags?: Array<string>
+    ['x-promise-controller']?:string
 }
 
 
@@ -51,7 +52,9 @@ export type SwaggerPath = SwaggerPathMethods & SwaggerPathExtra;
 
 export interface IMethodDetails {
     summary: string
+    pathUri: string
     controllerName?:string
+    isNamedController?:boolean
     responseDescription: string
     methodName: string
     methodPathAnnotation: string
