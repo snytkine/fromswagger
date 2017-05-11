@@ -1,10 +1,15 @@
 {
   "name": "fromswagger",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Generator of promiseoft project from swagger file",
-  "main": "index.js",
+  "main": "build/index.js",
   "author": "Dmitri Snytkine",
   "license": "MIT",
+  "private": false,
+  "scripts": {
+    "prebuild": "rm -rf ./build",
+    "build": "tsc && exit 0"
+  },
   "optionalDependencies": {
     "@types/clone": "^0.1.30",
     "@types/node": "^7.0.18"
@@ -12,11 +17,18 @@
   "bin": {
     "fromswagger": "./build/index.js"
   },
+  "typings": "build/types/index.d.ts",
+  "files": [
+    "build/lib/",
+    "build/types/",
+    "build/index.js"
+  ],
   "dependencies": {
     "clone": "^2.1.1",
+    "esformatter": "^0.10.0",
+    "json-schema": "^0.2.3",
     "json-schema-to-typescript": "^4.2.0",
     "swagger-parser": "^3.4.1",
-    "esformatter": "^0.10.0",
     "typescript": "^2.3.2",
     "typescript-formatter": "^5.1.3"
   }

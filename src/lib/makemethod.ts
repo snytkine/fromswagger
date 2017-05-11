@@ -197,7 +197,7 @@ export function parseOperation(url: string, httpMethod: string, operation: Swagg
     let parsedParams = swaggerParams2paramList(operation.parameters);
 
     let responseDescription = "";
-    let responseType = "JsonResponse<any>";
+    let responseType = "JsonResponse";
     let extraImports: Set<string> = new Set<string>();
 
     if (parsedParams[2].length > 0) {
@@ -226,7 +226,8 @@ export function parseOperation(url: string, httpMethod: string, operation: Swagg
                             let model = a[a.length - 1]
                             if (model) {
                                 extraImports.add(`import {${model}} from '../Models'`);
-                                responseType = `JsonResponse<${model}>`;
+                                // JsonResponse is not generic at this time, later it will be
+                                //responseType = `JsonResponse<${model}>`;
                             }
                         }
                     }

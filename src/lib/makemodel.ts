@@ -2,7 +2,6 @@
  * Created by snytkind on 5/8/17.
  */
 
-let swagger = require("../../swagger.json");
 import * as SwaggerParser from 'swagger-parser';
 import * as path from 'path';
 import * as fs from 'fs';
