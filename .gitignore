@@ -5,6 +5,7 @@ src/Models/
 src/Controllers/
 src/Components/
 src/Middleware
+src/Settings/
 /Components/
 swagger.json
 tsconfig.json
