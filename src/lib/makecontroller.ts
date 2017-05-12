@@ -3,7 +3,7 @@
  */
 import {IControllerDetails, IMethodDetails, SwaggerObject} from './interfaces'
 import {Formatter} from './formatter';
-import {makeController, parsePathItem, parsePathElement} from './makemethod';
+import {makeController, parsePathItem, parsePathElement, groupMethodDetailsByController} from './makemethod';
 const path = require('path');
 const util = require('util');
 
@@ -69,34 +69,57 @@ export class CreateControllers {
 
     }
 
-
     return res;
+
   }
 
 
+  prepareControllers(): Array<IControllerDetails> {
+
+
+    let aDetails = this.parsePaths();
+    return groupMethodDetailsByController(aDetails);
+  }
+
+
+  /*async *createControllers(): AsyncIterableIterator<boolean> {
+
+   if (this.swagger_.hasOwnProperty('paths')) {
+   let i = 1;
+   for (let path in this.swagger_.paths) {
+   //console.log("Inside next loop of createControllers");
+   let fname: string;
+   if (this.swagger_.paths.hasOwnProperty(path)) {
+   let x = parsePathItem(path, this.swagger_.paths[path]);
+   if (x.controllerName) {
+   fname = x.controllerName.toLocaleLowerCase();
+   } else {
+   fname = `controller${i++}`;
+   }
+
+   yield this.saveController(x, fname).catch(e => {
+   console.log("saveController Error for ctrl name: " + fname + " Error: " + e);
+   return false;
+   });
+
+
+   }
+   }
+   }
+
+   }*/
+
   async *createControllers(): AsyncIterableIterator<boolean> {
 
-    if (this.swagger_.hasOwnProperty('paths')) {
-      let i = 1;
-      for (let path in this.swagger_.paths) {
-        //console.log("Inside next loop of createControllers");
-        let fname: string;
-        if (this.swagger_.paths.hasOwnProperty(path)) {
-          let x = parsePathItem(path, this.swagger_.paths[path]);
-          if (x.controllerName) {
-            fname = x.controllerName.toLocaleLowerCase();
-          } else {
-            fname = `controller${i++}`;
-          }
+    let aCtrls = this.prepareControllers();
+    for (const ctrl of aCtrls) {
+      //console.log("Inside next loop of createControllers");
+      let fname: string = ctrl.controllerName;
 
-          yield this.saveController(x, fname).catch(e => {
-            console.log("saveController Error for ctrl name: " + fname + " Error: " + e);
-            return false;
-          });
-
-
-        }
-      }
+      yield this.saveController(ctrl, fname).catch(e => {
+        console.log("saveController Error for ctrl name: " + fname + " Error: " + e);
+        return false;
+      });
     }
 
   }

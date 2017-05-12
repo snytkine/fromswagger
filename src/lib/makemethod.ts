@@ -22,7 +22,7 @@ import {
  */
 
 let aRestMethods = ["get", "post", "put", "delete", "options", "head", "patch"];
-const X_CONTROLLER_NAME = 'x-promise-controller';
+const X_CONTROLLER_NAME = 'x-controller-name';
 
 function modelNameFromParamSchema(param: SwaggerParam): string {
   let ret: string = "";
@@ -250,7 +250,7 @@ export function parseOperation(url: string, httpMethod: string, operation: Swagg
     summary: summary,
     pathUri: url,
     controllerName: ctrlName,
-    isNamedController:isNamedController,
+    isNamedController: isNamedController,
     responseDescription: responseDescription,
     methodName: methodName,
     methodPathAnnotation: `@Path('${url}')`,
@@ -272,16 +272,13 @@ export function parseOperation(url: string, httpMethod: string, operation: Swagg
  */
 export function makeMethod(methodDetails: IMethodDetails): string {
 
-  return `
-            ${methodDetails.summary}
+  return `${methodDetails.summary}
             ${methodDetails.methodPathAnnotation}
             ${methodDetails.httpMethod}
             async ${methodDetails.methodName}(${methodDetails.paramsList}): Promise<${methodDetails.methodReturnType}> {
             
             
-            }
-            
-    `;
+            }`;
 }
 
 
@@ -369,4 +366,40 @@ export function parsePathItem(path: string, sp: SwaggerPath): IControllerDetails
   }
 
 
+}
+
+/**
+ * Takes array of IMethodDetails and groups then by x-controller-name key that can be in swagger in each http method
+ *
+ * @param aMethods
+ * @returns {Array<IControllerDetails>}
+ */
+export function groupMethodDetailsByController(aMethods: Array<IMethodDetails>): Array<IControllerDetails> {
+
+
+  console.log("ENTERED groupMethodDetailsByController with total: ", aMethods.length);
+  let perController = aMethods.reduce((acc, cur) => {
+
+    if (!acc.hasOwnProperty(cur.controllerName)) {
+      acc[cur.controllerName] = {
+        pathUri: cur.pathUri,
+        controllerName: cur.controllerName,
+        methods: []
+      }
+    }
+
+    acc[cur.controllerName].methods.push(cur);
+
+    return acc;
+
+  }, {});
+
+  let res: Array<IControllerDetails> = [];
+  for (let k in perController) {
+    if (perController.hasOwnProperty(k)) {
+      res.push(perController[k]);
+    }
+  }
+
+  return res;
 }

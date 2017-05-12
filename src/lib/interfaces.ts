@@ -38,7 +38,7 @@ export interface SwaggerOperation {
 
 
 export interface SwaggerPathExtra {
-    ['x-promise-controller']?: string
+    ['x-controller-name']?: string
     parameters?: Array<any>
 }
 

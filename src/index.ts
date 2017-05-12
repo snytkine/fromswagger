@@ -2,6 +2,7 @@
 
 import {Fsutil} from './lib/fsutil';
 import {CreateControllers} from './lib/makecontroller'
+import {groupMethodDetailsByController} from './lib/makemethod'
 import {Definition2Model} from './lib/makemodel';
 import app_ts from './lib/app';
 import {FileTemplates} from './lib/settings';
@@ -71,13 +72,14 @@ async function makeControllers(numModels: [number, number]): Promise<string> {
 
     return `============================\nModels Processed ${numModels[0]}. Models Created: ${numModels[1]}.\nControllers Processed: ${i}. Controllers Created: ${j}`;
 }
-
+/*
 let mypaths = cc.parsePaths();
 console.log("parsePaths done");
+let aGrouped = groupMethodDetailsByController(mypaths);
 
-console.log(JSON.stringify(mypaths));
+console.log(JSON.stringify(aGrouped));*/
 
-process.exit(1);
+//process.exit(1);
 
 
 makeModels().then(makeControllers).then(result => {
