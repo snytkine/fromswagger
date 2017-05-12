@@ -1,8 +1,11 @@
-build/
+/build/
 .idea/
+.npmrc
 src/Models/
-/Components/
 src/Controllers/
+src/Components/
+src/Middleware
+/Components/
 swagger.json
 tsconfig.json
-node_modules/editorconfig/tests/
+node_modules/

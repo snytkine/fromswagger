@@ -72,6 +72,13 @@ async function makeControllers(numModels: [number, number]): Promise<string> {
     return `============================\nModels Processed ${numModels[0]}. Models Created: ${numModels[1]}.\nControllers Processed: ${i}. Controllers Created: ${j}`;
 }
 
+let mypaths = cc.parsePaths();
+console.log("parsePaths done");
+
+console.log(JSON.stringify(mypaths));
+
+process.exit(1);
+
 
 makeModels().then(makeControllers).then(result => {
     console.log(result);

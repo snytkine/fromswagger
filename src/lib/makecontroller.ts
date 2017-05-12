@@ -49,7 +49,10 @@ export class CreateControllers {
 
   parsePaths(): Array<IMethodDetails> {
 
+    console.log("Entered parsePaths");
+
     let res: Array<IMethodDetails> = [];
+
     if (this.swagger_.hasOwnProperty('paths')) {
       let i = 1;
       for (let path in this.swagger_.paths) {
@@ -57,7 +60,8 @@ export class CreateControllers {
         let fname: string;
         if (this.swagger_.paths.hasOwnProperty(path)) {
           let x: Array<IMethodDetails> = parsePathElement(path, this.swagger_.paths[path], i++);
-
+          //console.log("~~~~~ GOT X: ", JSON.stringify(x));
+          res = res.concat(x);
 
         }
 
