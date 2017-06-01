@@ -1,6 +1,6 @@
 {
   "name": "fromswagger",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Generator of promiseoft project from swagger file",
   "main": "build/index.js",
   "author": "Dmitri Snytkine",
@@ -11,11 +11,12 @@
     "build": "tsc && exit 0"
   },
   "bin": {
-    "fromswagger": "./build/index.js"
+    "fromswagger": "./bin/fromswagger"
   },
   "files": [
     "build/lib/",
-    "build/index.js"
+    "build/index.js",
+    "bin"
   ],
   "dependencies": {
     "clone": "^2.1.1",
