@@ -253,7 +253,6 @@ export function parseOperation(url: string, httpMethod: string, operation: Swagg
     isNamedController: isNamedController,
     responseDescription: responseDescription,
     methodName: methodName,
-    methodPathAnnotation: `@Path('${url}')`,
     httpMethod: `@${httpMethod.toUpperCase()}`,
     paramsList: parsedParams[0],
     imports: imports.concat(parsedParams[1]),
@@ -272,8 +271,9 @@ export function parseOperation(url: string, httpMethod: string, operation: Swagg
  */
 export function makeMethod(methodDetails: IMethodDetails): string {
 
-  return `${methodDetails.summary}
-            ${methodDetails.methodPathAnnotation}
+  const pathAnnotation = methodDetails.pathUri.length > 0 ? `\n@Path('${methodDetails.pathUri}')` : '';
+
+  return `${methodDetails.summary}${pathAnnotation}          
             ${methodDetails.httpMethod}
             async ${methodDetails.methodName}(${methodDetails.paramsList}): Promise<${methodDetails.methodReturnType}> {
             
@@ -319,6 +319,7 @@ export function makeController(controllerDetails: IControllerDetails): string {
         ${sModelImports}
 
         @Controller
+        @Path('${controllerDetails.pathUri}')
         export default class ${controllerDetails.controllerName} {
         
         ${controllerMethods}
@@ -377,7 +378,7 @@ export function parsePathItem(path: string, sp: SwaggerPath): IControllerDetails
 export function groupMethodDetailsByController(aMethods: Array<IMethodDetails>): Array<IControllerDetails> {
 
 
-  console.log("ENTERED groupMethodDetailsByController with total: ", aMethods.length);
+  console.log("~~~~~~~ENTERED groupMethodDetailsByController with total: ~~~~", aMethods.length);
   let perController = aMethods.reduce((acc, cur) => {
 
     if (!acc.hasOwnProperty(cur.controllerName)) {
@@ -395,11 +396,87 @@ export function groupMethodDetailsByController(aMethods: Array<IMethodDetails>):
   }, {});
 
   let res: Array<IControllerDetails> = [];
+
   for (let k in perController) {
     if (perController.hasOwnProperty(k)) {
       res.push(perController[k]);
     }
   }
 
+  console.log("groupMethodDetailsByController returning: ", JSON.stringify(res));
+
+  return res;
+}
+
+/**
+ * A common path of 2 uris is the the string
+ * that has the same uri path segments for both uris
+ * without the ending slash
+ *
+ * Implement a function that takes 2 strings and returns the
+ * longest common path
+ *
+ * For the url1 and url2 in the example above the
+ * longer common path is /package/users/v1_0/user
+ *
+ */
+const getCommonPath = (s1: string, s2: string): string => {
+
+  const PATH_SEP = "/";
+  let pos = 0;
+
+  for (let i = 0; i <= s2.length; i += 1) {
+    if (s1[i] !== s2[i]) {
+      return s1.substring(0, pos);
+    }
+    if (s2[i] === PATH_SEP || i === s1.length || i === s2.length) {
+      pos = i
+    }
+  }
+
+  return s1.substr(0, pos);
+
+};
+
+
+const longestCommon = (paths: string[]): string => {
+
+  return paths.reduce((prev, cur) => {
+    return getCommonPath(prev, cur);
+  }, paths[0])
+};
+
+
+/**
+ * When controller has multiple methods
+ * find the longest common path for all methods and use it
+ * as @Path decorator on controller. The method's @Path values
+ * will then subtract that contoller path prefix
+ *
+ * @param controllerDetails
+ * @return array of IControllerDetails with values of pathUri updated
+ *
+ */
+export function adjustComprollerPaths(controllerDetails: Array<IControllerDetails>): Array<IControllerDetails> {
+
+
+  const res = controllerDetails.map(ctrl => {
+
+    const lcp = longestCommon(ctrl.methods.map(_ => _.pathUri));
+    console.log(`@@@@@@@@ Found lcp for ${ctrl.controllerName}: ${lcp}`);
+
+    ctrl.pathUri = lcp;
+
+    ctrl.methods = ctrl.methods.map(method => {
+      method.pathUri = method.pathUri.substring(lcp.length);
+      console.log(`######## New pathUri for method: ${ctrl.controllerName}.${method.methodName} = ${method.pathUri}`);
+      return method;
+    });
+
+    return ctrl;
+  });
+
+
+  console.log(`Returning adjusted controller details: ${JSON.stringify(res)}`);
   return res;
 }

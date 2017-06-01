@@ -57,7 +57,6 @@ export interface IMethodDetails {
     isNamedController?:boolean
     responseDescription: string
     methodName: string
-    methodPathAnnotation: string
     httpMethod: string
     paramsList: string
     methodReturnType: string

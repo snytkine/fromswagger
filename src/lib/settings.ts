@@ -78,7 +78,7 @@ export default class settings implements ISettings{
 const PRODUCTION:[string, string] = ["settings.PRODUCTION.ts", `import {Component, Environment} from 'promiseoft'
 import {ISettings} from "./settings";
 
-@Environment("PRODUCTION")
+@Environment("production")
 @Component("settings")
 export default class settings implements ISettings{
     MONGO_URI="";

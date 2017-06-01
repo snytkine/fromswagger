@@ -3,7 +3,13 @@
  */
 import {IControllerDetails, IMethodDetails, SwaggerObject} from './interfaces'
 import {Formatter} from './formatter';
-import {makeController, parsePathItem, parsePathElement, groupMethodDetailsByController} from './makemethod';
+import {
+  makeController,
+  parsePathItem,
+  parsePathElement,
+  groupMethodDetailsByController,
+  adjustComprollerPaths
+} from './makemethod';
 const path = require('path');
 const util = require('util');
 
@@ -78,7 +84,7 @@ export class CreateControllers {
 
 
     let aDetails = this.parsePaths();
-    return groupMethodDetailsByController(aDetails);
+    return adjustComprollerPaths(groupMethodDetailsByController(aDetails));
   }
 
 
