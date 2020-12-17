@@ -10,3 +10,4 @@ src/Settings/
 swagger.json
 tsconfig.json
 node_modules/
+temp
